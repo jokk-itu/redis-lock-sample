@@ -1,0 +1,89 @@
+version: '3.9'
+
+volumes:
+  redis-node-1-data:
+  redis-node-2-data:
+
+networks:
+  app_subnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: WorkerService/Dockerfile
+    environment:
+      - Seq=http://seq:80
+      - ObjectStore__Nodes__0=172.20.0.31:6373
+      - ObjectStore__Nodes__1=172.20.0.32:6374
+      - ObjectStore__Nodes__2=172.20.0.33.6375
+    depends_on:
+      - redis-cluster-setup
+      - seq
+    networks:
+      app_subnet:    
+
+  seq:
+    image: 'datalust/seq:latest'
+    container_name: seq
+    hostname: seq
+    ports:
+      - 5341:80
+    environment:
+      - ACCEPT_EULA=Y
+    networks:
+      app_subnet:
+
+  redis-cluster-setup:
+    image: 'redis:7.0'
+    command: 'redis-cli --cluster create 172.20.0.31:6373 172.20.0.32:6374 172.20.0.33:6375 --cluster-yes'
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.30
+
+  redis-node-1:
+    image: 'redis:7.0'
+    command: 'redis-server /usr/local/etc/redis/redis.conf'
+    container_name: redis-node-1
+    ports:
+      - '6373:6373'
+    volumes:
+      - redis-node-1-data:/var/lib/redis
+      - ./conf/redis-node-1.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.31
+
+  redis-node-2:
+    image: 'redis:7.0'
+    command: 'redis-server /usr/local/etc/redis/redis.conf'
+    container_name: redis-node-2
+    ports:
+      - '6374:6374'
+    volumes:
+      - redis-node-2-data:/var/lib/redis
+      - ./conf/redis-node-2.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.32
+
+  redis-node-3:
+    image: 'redis:7.0'
+    command: 'redis-server /usr/local/etc/redis/redis.conf'
+    container_name: redis-node-3
+    ports:
+      - '6375:6375'
+    volumes:
+      - redis-node-2-data:/var/lib/redis
+      - ./conf/redis-node-3.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.33
