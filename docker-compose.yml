@@ -3,6 +3,7 @@ version: '3.9'
 volumes:
   redis-node-1-data:
   redis-node-2-data:
+  redis-node-3-data:
 
 networks:
   app_subnet:
@@ -82,7 +83,7 @@ services:
     ports:
       - '6375:6375'
     volumes:
-      - redis-node-2-data:/var/lib/redis
+      - redis-node-3-data:/var/lib/redis
       - ./conf/redis-node-3.conf:/usr/local/etc/redis/redis.conf
     networks:
       app_subnet:
