@@ -1,2 +1,1 @@
-docker compose up -d
-docker compose scale worker=2
+docker compose up -d --scale worker=2
