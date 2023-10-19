@@ -9,8 +9,6 @@ public class Worker : BackgroundService
   private readonly ILogger<Worker> _logger;
   private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-  private const string Key = "NumberKey";
-
   public Worker(
     ILogger<Worker> logger,
     IConnectionMultiplexer connectionMultiplexer)
@@ -23,32 +21,31 @@ public class Worker : BackgroundService
   {
     while (!stoppingToken.IsCancellationRequested)
     {
-      await Parallel.ForEachAsync(
-        Enumerable.Range(1, Environment.ProcessorCount),
-        stoppingToken,
-        async (x, innerToken) =>
-        {
-          using var scope = LogContext.PushProperty("OperationId", Guid.NewGuid());
-          try
-          {
-            var @lock = new RedisDistributedLock($"Lock#{x}", _connectionMultiplexer.GetDatabase());
-            await using var handle = await @lock.TryAcquireAsync(TimeSpan.FromSeconds(1), innerToken);
-            if (handle != null)
-            {
-              _logger.LogInformation("Acquired lock {Lock}", x);
-              await Task.Delay(TimeSpan.FromMilliseconds(1200), innerToken);
-              _logger.LogInformation("Released lock {Lock}", x);
-            }
-            else
-            {
-              _logger.LogInformation("Did not acquire lock {Lock}", x);
-            }
-          }
-          catch (Exception e)
-          {
-            _logger.LogWarning(e, "Error occurred acquiring lock {Lock}", x);
-          }
-        });
+      await Work(stoppingToken);
+    }
+  }
+
+  private async Task Work(CancellationToken cancellationToken)
+  {
+    using var scope = LogContext.PushProperty("OperationId", Guid.NewGuid());
+    var @lock = new RedisDistributedLock("Lock", _connectionMultiplexer.GetDatabase());
+    await using var handle = await @lock.TryAcquireAsync(TimeSpan.FromSeconds(3), cancellationToken);
+    if (handle is not null)
+    {
+      try
+      {
+        _logger.LogInformation("Acquired lock");
+        await using var fileStream = new FileStream("locking.txt", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        await Task.Delay(TimeSpan.FromMilliseconds(3700), cancellationToken);
+      }
+      catch (Exception e)
+      {
+        _logger.LogError(e, "Hit distributed lock error");
+      }
+    }
+    else
+    {
+      _logger.LogInformation("Did not acquire lock");
     }
   }
 }

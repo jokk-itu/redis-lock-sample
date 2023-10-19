@@ -12,6 +12,7 @@ hostBuilder.UseSerilog((context, serviceProvider, configuration) =>
     .Enrich.WithThreadId()
     .Enrich.WithThreadName()
     .Enrich.WithProperty("ContainerId", Environment.GetEnvironmentVariable("HOSTNAME"))
+    .WriteTo.Console()
     .WriteTo.Seq(context.Configuration.GetValue<string>("Seq"));
 });
 hostBuilder.ConfigureServices((context, services) =>
@@ -20,8 +21,10 @@ hostBuilder.ConfigureServices((context, services) =>
   services.Configure<ObjectStoreSettings>(objectStoreSettings => context.Configuration.GetSection("ObjectStore").Bind(objectStoreSettings));
   services.AddSingleton<IConnectionMultiplexer>(serviceProvider =>
   {
-    var nodes = serviceProvider.GetRequiredService<IOptionsMonitor<ObjectStoreSettings>>().CurrentValue.Nodes;
-    return ConnectionMultiplexer.Connect(string.Join(',', nodes));
+    var settings = serviceProvider.GetRequiredService<IOptionsMonitor<ObjectStoreSettings>>().CurrentValue;
+    var nodes = settings.Nodes;
+    var extra = string.IsNullOrWhiteSpace(settings.Extra) ? "" : $",{settings.Extra}";
+    return ConnectionMultiplexer.Connect($"{string.Join(',', nodes)},connectRetry=3000,connectTimeout=12000,abortConnect=false{extra}");
   });
   services.AddHostedService<Worker>();
 });

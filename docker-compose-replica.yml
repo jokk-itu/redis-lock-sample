@@ -1,0 +1,73 @@
+version: '3.9'
+
+networks:
+  app_subnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: WorkerService/Dockerfile
+    environment:
+      - Seq=http://seq:80
+      - ObjectStore__Nodes__0=172.20.0.30:6379
+      - ObjectStore__Nodes__1=172.20.0.31:6379
+      - ObjectStore__Nodes__2=172.20.0.32:6379
+      - ObjectStore__Nodes__3=172.20.0.33:6379
+    depends_on:
+      - redis-master
+      - redis-replica-1
+      - redis-replica-2
+      - redis-replica-3
+      - seq
+    volumes:
+      - ./locking.txt:/app/locking.txt
+    networks:
+      app_subnet:
+
+  seq:
+    image: 'datalust/seq:latest'
+    container_name: seq
+    hostname: seq
+    ports:
+      - 5341:80
+    environment:
+      - ACCEPT_EULA=Y
+    networks:
+      app_subnet:
+
+  redis-master:
+    image: 'redis:7.0'
+    container_name: 'redis-master'
+    command: 'redis-server'
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.30
+
+  redis-replica-1:
+    image: 'redis:7.0'
+    container_name: 'redis-replica-1'
+    command: 'redis-server --replicaof redis-master 6379'
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.31
+
+  redis-replica-2:
+    image: 'redis:7.0'
+    container_name: 'redis-replica-2'
+    command: 'redis-server --replicaof redis-master 6379'
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.32
+
+  redis-replica-3:
+    image: 'redis:7.0'
+    container_name: 'redis-replica-3'
+    command: 'redis-server --replicaof redis-master 6379'
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.33

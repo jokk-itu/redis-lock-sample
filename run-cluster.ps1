@@ -1,0 +1,1 @@
+docker compose -f docker-compose-cluster.yml up -d --scale worker=2

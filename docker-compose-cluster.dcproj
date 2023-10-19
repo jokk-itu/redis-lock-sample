@@ -4,9 +4,10 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>47ea164f-4ef3-4406-8785-c3395183ffd3</ProjectGuid>
+    <DockerComposeBaseFilePath>docker-compose-cluster</DockerComposeBaseFilePath>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="docker-compose.yml" />
+    <None Include="docker-compose-cluster.yml" />
     <None Include=".dockerignore" />
   </ItemGroup>
 </Project>

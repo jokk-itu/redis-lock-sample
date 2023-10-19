@@ -1,0 +1,1 @@
+docker compose -f docker-compose-sentinel.yml up -d --scale worker=2

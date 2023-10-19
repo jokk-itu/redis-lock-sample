@@ -1,0 +1,43 @@
+version: '3.9'
+
+networks:
+  app_subnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: WorkerService/Dockerfile
+    environment:
+      - Seq=http://seq:80
+      - ObjectStore__Nodes__0=172.20.0.30:6379
+    depends_on:
+      - redis
+      - seq
+    volumes:
+      - ./locking.txt:/app/locking.txt
+    networks:
+      app_subnet:
+
+  seq:
+    image: 'datalust/seq:latest'
+    container_name: seq
+    hostname: seq
+    ports:
+      - 5341:80
+    environment:
+      - ACCEPT_EULA=Y
+    networks:
+      app_subnet:
+
+  redis:
+    image: 'redis:7.0'
+    container_name: 'redis'
+    command: 'redis-server'
+    networks:
+      app_subnet:
+        ipv4_address: 172.20.0.30

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
+  <PropertyGroup Label="Globals">
+    <ProjectVersion>2.1</ProjectVersion>
+    <DockerTargetOS>Linux</DockerTargetOS>
+    <ProjectGuid>9637b531-4497-453b-a3e5-ed66b92c53bc</ProjectGuid>
+    <DockerComposeBaseFilePath>docker-compose-replica</DockerComposeBaseFilePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="docker-compose-replica.yml" />
+    <None Include=".dockerignore" />
+  </ItemGroup>
+</Project>
