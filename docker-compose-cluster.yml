@@ -52,7 +52,7 @@ services:
     command: 'redis-server /usr/local/etc/redis/redis.conf'
     container_name: redis-node-1
     volumes:
-      - ./conf/redis-node-1.conf:/usr/local/etc/redis/redis.conf
+      - ./clusterconf/redis-node-1.conf:/usr/local/etc/redis/redis.conf
     networks:
       app_subnet:
         ipv4_address: 172.20.0.31
@@ -62,7 +62,7 @@ services:
     command: 'redis-server /usr/local/etc/redis/redis.conf'
     container_name: redis-node-2
     volumes:
-      - ./conf/redis-node-2.conf:/usr/local/etc/redis/redis.conf
+      - ./clusterconf/redis-node-2.conf:/usr/local/etc/redis/redis.conf
     networks:
       app_subnet:
         ipv4_address: 172.20.0.32
@@ -72,7 +72,7 @@ services:
     command: 'redis-server /usr/local/etc/redis/redis.conf'
     container_name: redis-node-3
     volumes:
-      - ./conf/redis-node-3.conf:/usr/local/etc/redis/redis.conf
+      - ./clusterconf/redis-node-3.conf:/usr/local/etc/redis/redis.conf
     networks:
       app_subnet:
         ipv4_address: 172.20.0.33
