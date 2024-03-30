@@ -13,7 +13,7 @@ hostBuilder.UseSerilog((context, serviceProvider, configuration) =>
     .Enrich.WithThreadName()
     .Enrich.WithProperty("ContainerId", Environment.GetEnvironmentVariable("HOSTNAME"))
     .WriteTo.Console()
-    .WriteTo.Seq(context.Configuration.GetValue<string>("Seq"));
+    .WriteTo.Seq(context.Configuration.GetValue<string>("Seq")!);
 });
 hostBuilder.ConfigureServices((context, services) =>
 {
@@ -23,7 +23,7 @@ hostBuilder.ConfigureServices((context, services) =>
   {
     var settings = serviceProvider.GetRequiredService<IOptionsMonitor<ObjectStoreSettings>>().CurrentValue;
     var nodes = settings.Nodes;
-    var extra = string.IsNullOrWhiteSpace(settings.Extra) ? "" : $",{settings.Extra}";
+    var extra = string.IsNullOrWhiteSpace(settings.Extra) ? string.Empty : $",{settings.Extra}";
     return ConnectionMultiplexer.Connect($"{string.Join(',', nodes)},connectRetry=3000,connectTimeout=12000,abortConnect=false{extra}");
   });
   services.AddHostedService<Worker>();
